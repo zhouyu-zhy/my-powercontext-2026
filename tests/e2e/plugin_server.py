@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 import socket
@@ -33,7 +34,15 @@ REPOSITORY = Path(__file__).resolve().parents[2]
 
 
 @asynccontextmanager
-async def running_server(directory: Path, plugins: Path | None = None, *, extra_env: dict[str, str] | None = None):
+async def running_server(
+    directory: Path,
+    plugins: Path | None = None,
+    *,
+    extra_env: dict[str, str] | None = None,
+    identities: dict[str, str] | None = None,
+):
+    """Run Server with the admin Bearer, or with an identity map of ``{name: token}`` where ``admin`` administers."""
+
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
         port = sock.getsockname()[1]
@@ -55,6 +64,30 @@ async def running_server(directory: Path, plugins: Path | None = None, *, extra_
         "PYTHONPATH": os.pathsep.join(filter(None, (str(REPOSITORY), env.get("PYTHONPATH")))),
         **(extra_env or {}),
     })
+    if identities is not None:
+        tokens = {"admin": ADMIN_AUTHORIZATION_VALUE, **identities}
+        mapping = directory / "identities.json"
+        mapping.write_text(
+            json.dumps({
+                "identities": [
+                    {
+                        "credential_id": name,
+                        "token_digest": hashlib.sha256(token.encode()).hexdigest(),
+                        "subject": {"type": "service", "id": name},
+                    }
+                    for name, token in tokens.items()
+                ]
+            })
+        )
+        mapping.chmod(0o600)
+        for key in ("POWERCONTEXT_SERVER_AUTH_ENABLED", "POWERCONTEXT_SERVER_AUTH_TOKEN"):
+            env.pop(key)
+        env["POWERCONTEXT_SERVER_AUTH"] = json.dumps({
+            "enabled": True,
+            "identities_file": str(mapping),
+            "administrators": ["service:admin"],
+        })
+        env["POWERCONTEXT_SERVER_ACCESS_BACKGROUND_PRINCIPAL_ID"] = "admin"
     if plugins is not None:
         env["POWERCONTEXT_SERVER_PLUGINS_DIR"] = str(plugins)
     entrypoint = Path(sys.executable).with_name("powercontext")
