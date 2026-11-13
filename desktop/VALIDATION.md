@@ -2907,3 +2907,34 @@ uv run --no-sync python desktop/tests/real_server.py \
   --product-qualification sqlite-plugin-reload-5e365242-v1 \
   --wheel desktop/.artifacts/plugin-reload/powercontext-1.5.2.dev55+g5e365242a-py3-none-any.whl
 ```
+
+
+## Server a80648a8 Source plugins protocol qualification
+
+`sqlite-source-plugins-a80648a8-v1` qualifies all thirteen Desktop protocol operations against
+Server source `a80648a8eb606bcfb70c1e363c27ecf1caf1001b`, which adds Source plugin collection runners and
+targets and removes the Source management operations.
+
+- Normalized OpenAPI SHA-256: `e12490d40a86f30b8540727d3fd9c4ce50a9edcb9c8a17d8b22634f06d942073`.
+- Wheel: `powercontext-1.5.2.dev61+ga80648a8e-py3-none-any.whl`.
+- Wheel SHA-256: `fa2bc3e101a465c1035d4d2703860074ec5184e2eac58ed94d50a7fdfa0a1568`.
+- Native debug probe SHA-256 (built without debug info): `2a4580727564bb8147c625e0909bdf2bbb2afe2e709fe4491a5c94f4f1c0381b`.
+
+On 2026-11-13, Linux 7.0 x86_64 (Ubuntu 24.04, glibc 2.39) and Python 3.12.3 passed anonymous loopback,
+static Bearer, HTTPS with explicit CA/base path, and enforced Provider modes of the unchanged
+`desktop/tests/real_server.py` through the ordinary product ConnectionManager. The probe was built with
+the product Cargo lock without `ci-fixtures` and selected this bundled qualification; the client and
+qualified contract digests are identical. `bundled_product_qualification_covers_every_desktop_operation`
+passed against the same records. The wheel and report are retained under ignored
+`desktop/.artifacts/source-plugins/` and `desktop/.artifacts/real-server.json`.
+This qualifies the observed local SQLite protocol; it does not establish installed WebView, native
+credential persistence, other operating systems, native database upgrades or release acceptance.
+
+Reproduce against the recorded artifact:
+
+```sh
+cargo build --locked --manifest-path desktop/src-tauri/Cargo.toml --example server_probe
+uv run --no-sync python desktop/tests/real_server.py \
+  --product-qualification sqlite-source-plugins-a80648a8-v1 \
+  --wheel desktop/.artifacts/source-plugins/powercontext-1.5.2.dev61+ga80648a8e-py3-none-any.whl
+```
