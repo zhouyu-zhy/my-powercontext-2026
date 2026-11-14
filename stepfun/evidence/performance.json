@@ -1,0 +1,861 @@
+{
+  "result": "PASS",
+  "checks": {
+    "allDocumentsInserted": true,
+    "allQueriesExecuted": true,
+    "finiteMetrics": true
+  },
+  "testedAt": "2026-11-14T17:50:10.500Z",
+  "environment": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+    "hardwareConcurrency": 32,
+    "deviceMemory": 16,
+    "platform": "Win32"
+  },
+  "fixedConfiguration": {
+    "corpus": "reproducible-corpus-v1 · 24 documents",
+    "queries": "6 queries · 3 repetitions each",
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "revision": "751bff37182d3f1213fa05d7196b954e230abad9",
+    "backend": "wasm (quantization comparison)",
+    "batchComparison": [
+      1,
+      8
+    ],
+    "batchRepetitions": 3,
+    "vectorDimension": 384,
+    "distance": "cosine",
+    "seekdb": "1.4.0 local server · HNSW + FULLTEXT · RRF(rank_constant=60, rank_window_size=60)",
+    "k": 5
+  },
+  "modelFiles": {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "revision": "751bff37182d3f1213fa05d7196b954e230abad9",
+    "source": "https://huggingface.co/Xenova/all-MiniLM-L6-v2/tree/751bff37182d3f1213fa05d7196b954e230abad9",
+    "downloadEndpoint": "https://hf-mirror.com",
+    "generatedAt": "2026-11-14T17:49:50.857Z",
+    "accounting": "每个精度总大小 = 相同共享配置与分词文件 + 对应 ONNX 权重；不重复计算共享文件",
+    "sharedBytes": 944310,
+    "variants": {
+      "fp32": {
+        "onnxFile": "onnx/model.onnx",
+        "onnxBytes": 90387606,
+        "totalBytes": 91331916
+      },
+      "int8": {
+        "onnxFile": "onnx/model_quantized.onnx",
+        "onnxBytes": 22972370,
+        "totalBytes": 23916680
+      }
+    },
+    "downloads": [
+      {
+        "path": "config.json",
+        "bytes": 650,
+        "downloadMs": 1383.872,
+        "sha256": "7135149f7cffa1a573466c6e4d8423ed73b62fd2332c575bf738a0d033f70df7"
+      },
+      {
+        "path": "tokenizer.json",
+        "bytes": 711661,
+        "downloadMs": 1165.6960000000001,
+        "sha256": "da0e79933b9ed51798a3ae27893d3c5fa4a201126cef75586296df9b4d2c62a0"
+      },
+      {
+        "path": "tokenizer_config.json",
+        "bytes": 366,
+        "downloadMs": 470.2633999999998,
+        "sha256": "9261e7d79b44c8195c1cada2b453e55b00aeb81e907a6664974b4d7776172ab3"
+      },
+      {
+        "path": "special_tokens_map.json",
+        "bytes": 125,
+        "downloadMs": 465.05089999999973,
+        "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+      },
+      {
+        "path": "vocab.txt",
+        "bytes": 231508,
+        "downloadMs": 536.4750999999997,
+        "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"
+      },
+      {
+        "path": "onnx/model.onnx",
+        "bytes": 90387606,
+        "downloadMs": 3825.787,
+        "sha256": "759c3cd2b7fe7e93933ad23c4c9181b7396442a2ed746ec7c1d46192c469c46e"
+      },
+      {
+        "path": "onnx/model_quantized.onnx",
+        "bytes": 22972370,
+        "downloadMs": 1054.6436000000003,
+        "sha256": "afdb6f1a0e45b715d0bb9b11772f032c399babd23bfc31fed1c170afc848bdb1"
+      }
+    ],
+    "compressionRatio": 3.8187539407643536
+  },
+  "variants": [
+    {
+      "precision": "int8",
+      "collection": "bench_int8_1794678601226",
+      "backend": "wasm",
+      "modelBytes": 23916680,
+      "coldModelLoadMs": 320,
+      "warmModelCacheHitMs": 0.19999999552965164,
+      "warmModelReportedLoadMs": 0,
+      "writeMs": 51.935199999999895,
+      "refreshMs": 651.5037999999986,
+      "inserted": 24,
+      "batching": {
+        "1": {
+          "runs": [
+            {
+              "wallMs": 332.5,
+              "inferenceMs": 323.29999999701977
+            },
+            {
+              "wallMs": 326.3999999985099,
+              "inferenceMs": 321.6000000014901
+            },
+            {
+              "wallMs": 309.6000000014901,
+              "inferenceMs": 305.299999974668
+            }
+          ],
+          "medianWallMs": 326.3999999985099,
+          "medianInferenceMs": 321.6000000014901
+        },
+        "8": {
+          "runs": [
+            {
+              "wallMs": 323.5,
+              "inferenceMs": 321.80000000447035
+            },
+            {
+              "wallMs": 236.89999999850988,
+              "inferenceMs": 232.7000000104308
+            },
+            {
+              "wallMs": 302,
+              "inferenceMs": 301.20000000298023
+            }
+          ],
+          "medianWallMs": 302,
+          "medianInferenceMs": 301.20000000298023
+        }
+      },
+      "medianQueryEmbeddingMs": 5.949999999254942,
+      "medianDatabaseMs": 4.279450000000907,
+      "medianEndToEndMs": 16.80000000447035,
+      "recallAt5": 1,
+      "nDCGAt5": 1,
+      "qualityRuns": [
+        {
+          "queryId": "q1",
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q2",
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q3",
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q4",
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q5",
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q6",
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        }
+      ],
+      "queryRuns": [
+        {
+          "queryId": "q1",
+          "repeat": 0,
+          "ids": [
+            "d01",
+            "d02",
+            "d04",
+            "d03",
+            "d12"
+          ],
+          "queryEmbeddingMs": 6.899999998509884,
+          "databaseMs": 12.533199999999852,
+          "totalMs": 26,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q1",
+          "repeat": 1,
+          "ids": [
+            "d01",
+            "d02",
+            "d04",
+            "d03",
+            "d12"
+          ],
+          "queryEmbeddingMs": 6.899999998509884,
+          "databaseMs": 4.921499999998559,
+          "totalMs": 18.69999999552965,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q1",
+          "repeat": 2,
+          "ids": [
+            "d01",
+            "d02",
+            "d04",
+            "d03",
+            "d12"
+          ],
+          "queryEmbeddingMs": 6.199999995529652,
+          "databaseMs": 4.665499999999156,
+          "totalMs": 17.700000002980232,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q2",
+          "repeat": 0,
+          "ids": [
+            "d07",
+            "d08",
+            "d19",
+            "d11",
+            "d05"
+          ],
+          "queryEmbeddingMs": 6.200000002980232,
+          "databaseMs": 4.302300000001196,
+          "totalMs": 16.900000005960464,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q2",
+          "repeat": 1,
+          "ids": [
+            "d07",
+            "d08",
+            "d19",
+            "d11",
+            "d05"
+          ],
+          "queryEmbeddingMs": 6.100000001490116,
+          "databaseMs": 4.210900000000038,
+          "totalMs": 16.700000002980232,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q2",
+          "repeat": 2,
+          "ids": [
+            "d07",
+            "d08",
+            "d19",
+            "d11",
+            "d05"
+          ],
+          "queryEmbeddingMs": 5.5,
+          "databaseMs": 4.220699999999852,
+          "totalMs": 16,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q3",
+          "repeat": 0,
+          "ids": [
+            "d06",
+            "d08",
+            "d05",
+            "d10",
+            "d09"
+          ],
+          "queryEmbeddingMs": 5.399999998509884,
+          "databaseMs": 4.3125,
+          "totalMs": 16.5,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q3",
+          "repeat": 1,
+          "ids": [
+            "d06",
+            "d08",
+            "d05",
+            "d10",
+            "d09"
+          ],
+          "queryEmbeddingMs": 5.600000001490116,
+          "databaseMs": 4.256600000000617,
+          "totalMs": 16.200000002980232,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q3",
+          "repeat": 2,
+          "ids": [
+            "d06",
+            "d08",
+            "d05",
+            "d10",
+            "d09"
+          ],
+          "queryEmbeddingMs": 5.799999997019768,
+          "databaseMs": 3.9651000000012573,
+          "totalMs": 15.899999998509884,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q4",
+          "repeat": 0,
+          "ids": [
+            "d13",
+            "d15",
+            "d14",
+            "d16",
+            "d11"
+          ],
+          "queryEmbeddingMs": 4.299999997019768,
+          "databaseMs": 4.005900000000111,
+          "totalMs": 15.299999997019768,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q4",
+          "repeat": 1,
+          "ids": [
+            "d13",
+            "d15",
+            "d14",
+            "d16",
+            "d11"
+          ],
+          "queryEmbeddingMs": 5.299999997019768,
+          "databaseMs": 4.940700000001016,
+          "totalMs": 17.399999998509884,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q4",
+          "repeat": 2,
+          "ids": [
+            "d13",
+            "d15",
+            "d14",
+            "d16",
+            "d11"
+          ],
+          "queryEmbeddingMs": 6.600000001490116,
+          "databaseMs": 5.137499999998909,
+          "totalMs": 19.30000000447035,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q5",
+          "repeat": 0,
+          "ids": [
+            "d18",
+            "d17",
+            "d02",
+            "d20",
+            "d13"
+          ],
+          "queryEmbeddingMs": 5.899999998509884,
+          "databaseMs": 5.1961000000010245,
+          "totalMs": 18.80000000447035,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q5",
+          "repeat": 1,
+          "ids": [
+            "d18",
+            "d17",
+            "d02",
+            "d20",
+            "d13"
+          ],
+          "queryEmbeddingMs": 5.200000002980232,
+          "databaseMs": 4.876400000001013,
+          "totalMs": 17.69999999552965,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q5",
+          "repeat": 2,
+          "ids": [
+            "d18",
+            "d17",
+            "d02",
+            "d20",
+            "d13"
+          ],
+          "queryEmbeddingMs": 4.799999997019768,
+          "databaseMs": 4.205299999999625,
+          "totalMs": 16.100000001490116,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q6",
+          "repeat": 0,
+          "ids": [
+            "d12",
+            "d10",
+            "d11",
+            "d09",
+            "d20"
+          ],
+          "queryEmbeddingMs": 6.0999999940395355,
+          "databaseMs": 4.233399999999165,
+          "totalMs": 17.600000001490116,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q6",
+          "repeat": 1,
+          "ids": [
+            "d12",
+            "d10",
+            "d11",
+            "d09",
+            "d20"
+          ],
+          "queryEmbeddingMs": 6,
+          "databaseMs": 4.151299999999537,
+          "totalMs": 16.400000005960464,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q6",
+          "repeat": 2,
+          "ids": [
+            "d12",
+            "d10",
+            "d11",
+            "d09",
+            "d20"
+          ],
+          "queryEmbeddingMs": 6.4000000059604645,
+          "databaseMs": 3.9680000000007567,
+          "totalMs": 16.5,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        }
+      ]
+    },
+    {
+      "precision": "fp32",
+      "collection": "bench_fp32_1794678604723",
+      "backend": "wasm",
+      "modelBytes": 91331916,
+      "coldModelLoadMs": 1465.3999999985099,
+      "warmModelCacheHitMs": 0.10000000149011612,
+      "warmModelReportedLoadMs": 0,
+      "writeMs": 34.63940000000002,
+      "refreshMs": 543.5609999999979,
+      "inserted": 24,
+      "batching": {
+        "1": {
+          "runs": [
+            {
+              "wallMs": 517,
+              "inferenceMs": 511.19999998807907
+            },
+            {
+              "wallMs": 471.59999999403954,
+              "inferenceMs": 460.20000000298023
+            },
+            {
+              "wallMs": 506.40000000596046,
+              "inferenceMs": 500.80000000447035
+            }
+          ],
+          "medianWallMs": 506.40000000596046,
+          "medianInferenceMs": 500.80000000447035
+        },
+        "8": {
+          "runs": [
+            {
+              "wallMs": 537.2000000029802,
+              "inferenceMs": 536.3999999985099
+            },
+            {
+              "wallMs": 536.6000000014901,
+              "inferenceMs": 535.5
+            },
+            {
+              "wallMs": 490.19999999552965,
+              "inferenceMs": 489.19999999552965
+            }
+          ],
+          "medianWallMs": 536.6000000014901,
+          "medianInferenceMs": 535.5
+        }
+      },
+      "medianQueryEmbeddingMs": 9.300000000745058,
+      "medianDatabaseMs": 4.519749999999476,
+      "medianEndToEndMs": 20.75,
+      "recallAt5": 1,
+      "nDCGAt5": 1,
+      "qualityRuns": [
+        {
+          "queryId": "q1",
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q2",
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q3",
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q4",
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q5",
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q6",
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        }
+      ],
+      "queryRuns": [
+        {
+          "queryId": "q1",
+          "repeat": 0,
+          "ids": [
+            "d01",
+            "d02",
+            "d04",
+            "d03",
+            "d14"
+          ],
+          "queryEmbeddingMs": 9.299999997019768,
+          "databaseMs": 13.945599999999104,
+          "totalMs": 31,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q1",
+          "repeat": 1,
+          "ids": [
+            "d01",
+            "d02",
+            "d04",
+            "d03",
+            "d14"
+          ],
+          "queryEmbeddingMs": 10.5,
+          "databaseMs": 6.004899999999907,
+          "totalMs": 25.299999997019768,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q1",
+          "repeat": 2,
+          "ids": [
+            "d01",
+            "d02",
+            "d04",
+            "d03",
+            "d14"
+          ],
+          "queryEmbeddingMs": 11.5,
+          "databaseMs": 5.747600000002421,
+          "totalMs": 25.299999997019768,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q2",
+          "repeat": 0,
+          "ids": [
+            "d07",
+            "d08",
+            "d19",
+            "d11",
+            "d05"
+          ],
+          "queryEmbeddingMs": 10.299999997019768,
+          "databaseMs": 5.8237999999983,
+          "totalMs": 24.5,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q2",
+          "repeat": 1,
+          "ids": [
+            "d07",
+            "d08",
+            "d19",
+            "d11",
+            "d05"
+          ],
+          "queryEmbeddingMs": 11.199999995529652,
+          "databaseMs": 5.34599999999773,
+          "totalMs": 23.799999997019768,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q2",
+          "repeat": 2,
+          "ids": [
+            "d07",
+            "d08",
+            "d19",
+            "d11",
+            "d05"
+          ],
+          "queryEmbeddingMs": 9.799999997019768,
+          "databaseMs": 4.563699999998789,
+          "totalMs": 21.399999998509884,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q3",
+          "repeat": 0,
+          "ids": [
+            "d06",
+            "d08",
+            "d05",
+            "d10",
+            "d09"
+          ],
+          "queryEmbeddingMs": 9.5,
+          "databaseMs": 4.600200000000768,
+          "totalMs": 21.299999997019768,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q3",
+          "repeat": 1,
+          "ids": [
+            "d06",
+            "d08",
+            "d05",
+            "d10",
+            "d09"
+          ],
+          "queryEmbeddingMs": 9.5,
+          "databaseMs": 4.395400000001246,
+          "totalMs": 21,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q3",
+          "repeat": 2,
+          "ids": [
+            "d06",
+            "d08",
+            "d05",
+            "d10",
+            "d09"
+          ],
+          "queryEmbeddingMs": 10.600000001490116,
+          "databaseMs": 4.29030000000057,
+          "totalMs": 22.100000001490116,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q4",
+          "repeat": 0,
+          "ids": [
+            "d13",
+            "d15",
+            "d14",
+            "d16",
+            "d11"
+          ],
+          "queryEmbeddingMs": 6.399999998509884,
+          "databaseMs": 4.191600000001927,
+          "totalMs": 18.100000001490116,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q4",
+          "repeat": 1,
+          "ids": [
+            "d13",
+            "d15",
+            "d14",
+            "d16",
+            "d11"
+          ],
+          "queryEmbeddingMs": 6.5,
+          "databaseMs": 4.034899999998743,
+          "totalMs": 17.5,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q4",
+          "repeat": 2,
+          "ids": [
+            "d13",
+            "d15",
+            "d14",
+            "d16",
+            "d11"
+          ],
+          "queryEmbeddingMs": 6.899999998509884,
+          "databaseMs": 4.082500000000437,
+          "totalMs": 17.5,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q5",
+          "repeat": 0,
+          "ids": [
+            "d18",
+            "d17",
+            "d02",
+            "d20",
+            "d13"
+          ],
+          "queryEmbeddingMs": 6.799999997019768,
+          "databaseMs": 4.475800000000163,
+          "totalMs": 18.200000002980232,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q5",
+          "repeat": 1,
+          "ids": [
+            "d18",
+            "d17",
+            "d02",
+            "d20",
+            "d13"
+          ],
+          "queryEmbeddingMs": 7.200000002980232,
+          "databaseMs": 4.850099999999657,
+          "totalMs": 19.200000002980232,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q5",
+          "repeat": 2,
+          "ids": [
+            "d18",
+            "d17",
+            "d02",
+            "d20",
+            "d13"
+          ],
+          "queryEmbeddingMs": 6.699999995529652,
+          "databaseMs": 4.26589999999851,
+          "totalMs": 18.600000001490116,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q6",
+          "repeat": 0,
+          "ids": [
+            "d12",
+            "d10",
+            "d11",
+            "d09",
+            "d03"
+          ],
+          "queryEmbeddingMs": 9.300000004470348,
+          "databaseMs": 3.919499999999971,
+          "totalMs": 19.899999998509884,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q6",
+          "repeat": 1,
+          "ids": [
+            "d12",
+            "d10",
+            "d11",
+            "d09",
+            "d03"
+          ],
+          "queryEmbeddingMs": 9.200000002980232,
+          "databaseMs": 3.99829999999929,
+          "totalMs": 19.5,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        },
+        {
+          "queryId": "q6",
+          "repeat": 2,
+          "ids": [
+            "d12",
+            "d10",
+            "d11",
+            "d09",
+            "d03"
+          ],
+          "queryEmbeddingMs": 9.200000002980232,
+          "databaseMs": 4.8563000000031025,
+          "totalMs": 20.5,
+          "recallAt5": 1,
+          "nDCGAt5": 1
+        }
+      ]
+    }
+  ],
+  "comparison": {
+    "compressionRatio": 3.8187539407643536,
+    "recallAt5Delta": 0,
+    "nDCGAt5Delta": 0,
+    "int8EmbeddingSpeedup": 1.7768211920579142,
+    "batch8SpeedupInt8": 1.0807947019818207,
+    "batch8SpeedupFp32": 0.9437197167434853
+  }
+}

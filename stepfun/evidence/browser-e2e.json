@@ -1,0 +1,112 @@
+{
+  "result": "PASS",
+  "testedAt": "2026-11-14T17:50:16.301Z",
+  "browserVersion": "157.0.8103.78",
+  "health": {
+    "ok": true,
+    "database": "seekdb",
+    "version": "5.7.25-OceanBase seekdb-v1.4.0.0",
+    "embedding": "browser-only",
+    "dimension": 384
+  },
+  "checks": {
+    "browserImportAndHybridSearch": true,
+    "originalTextAndRrfScores": true,
+    "incrementalJsonImport": true,
+    "collectionIsolationAndPersistence": true,
+    "automaticWasmFallback": true,
+    "quantizationAndPerformanceExperiment": true,
+    "noMainFlowPageErrors": true,
+    "noExternalHttpRequests": true
+  },
+  "main": {
+    "importStatus": "已写入 24 篇 · 写入 134.7 ms · 索引刷新 569.8 ms · 总计 1058 ms",
+    "initialHits": [
+      {
+        "id": "d01",
+        "text": "Hybrid search combines full text keyword matching with dense vector similarity so a knowledge base can retrieve exact terms and related meaning.",
+        "score": "RRF 0.03250"
+      },
+      {
+        "id": "d02",
+        "text": "Reciprocal rank fusion in hybrid retrieval merges the full text ranking and vector ranking without requiring comparable raw scores.",
+        "score": "RRF 0.03230"
+      },
+      {
+        "id": "d04",
+        "text": "A full text index stores tokenized terms and supports exact keyword matching over the original document.",
+        "score": "RRF 0.01610"
+      },
+      {
+        "id": "d03",
+        "text": "An HNSW vector index approximates nearest neighbors and reduces the work needed to search a large collection of embeddings.",
+        "score": "RRF 0.01560"
+      },
+      {
+        "id": "d12",
+        "text": "Batching documents improves embedding throughput by amortizing tokenizer and inference overhead across several texts.",
+        "score": "RRF 0.01540"
+      }
+    ],
+    "persistedHits": [
+      {
+        "id": "d01",
+        "text": "Hybrid search combines full text keyword matching with dense vector similarity so a knowledge base can retrieve exact terms and related meaning.",
+        "score": "RRF 0.03230"
+      },
+      {
+        "id": "d02",
+        "text": "Reciprocal rank fusion in hybrid retrieval merges the full text ranking and vector ranking without requiring comparable raw scores.",
+        "score": "RRF 0.03200"
+      },
+      {
+        "id": "e2e_extra_1",
+        "text": "Incremental hybrid imports preserve existing local documents.",
+        "score": "RRF 0.03070"
+      },
+      {
+        "id": "d04",
+        "text": "A full text index stores tokenized terms and supports exact keyword matching over the original document.",
+        "score": "RRF 0.01610"
+      },
+      {
+        "id": "d03",
+        "text": "An HNSW vector index approximates nearest neighbors and reduces the work needed to search a large collection of embeddings.",
+        "score": "RRF 0.01560"
+      }
+    ]
+  },
+  "fallback": {
+    "state": {
+      "collection": "e2e_fallback_mwgpaoj5",
+      "backend": "wasm",
+      "fallback": true,
+      "ready": true,
+      "count": 1,
+      "lastEvidence": null
+    },
+    "hits": [
+      {
+        "id": "fallback_probe",
+        "text": "WASM fallback keeps local inference available without WebGPU.",
+        "score": "RRF 0.03280"
+      }
+    ]
+  },
+  "webgpu": {
+    "status": "PASS",
+    "backend": "webgpu",
+    "hits": [
+      {
+        "id": "webgpu_probe",
+        "text": "WebGPU executes local transformer inference on the device.",
+        "score": "RRF 0.03280"
+      }
+    ]
+  },
+  "performanceEvidence": "evidence/performance.json",
+  "screenshots": [
+    "evidence/browser-search.png",
+    "evidence/experiment.png"
+  ]
+}

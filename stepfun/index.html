@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="完全在浏览器生成向量，由 seekdb 在本地完成全文与向量混合检索。" />
+    <title>栖光 · 本地知识库</title>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="栖光知识库首页">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span><strong>栖光</strong><small>LOCAL LIGHT</small></span>
+        </a>
+        <div class="topbar-center"><span class="line"></span> PRIVATE BY DESIGN <span class="line"></span></div>
+        <div class="runtime-badges">
+          <span class="badge" id="db-badge"><i class="status-dot"></i>seekdb 连接中</span>
+          <span class="badge accent" id="backend-badge">WASM / 待初始化</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div>
+            <p class="eyebrow">YOUR NOTES. YOUR DEVICE. YOUR MODEL.</p>
+            <h1>知识留在本地，<br /><em>答案近在眼前。</em></h1>
+          </div>
+          <div class="hero-note">
+            <span class="note-index">01 / LOCAL RAG</span>
+            <p>浏览器本地完成文档与查询向量化，seekdb 负责真正的全文 + 向量混合检索。没有云端推理，没有客户端拼接结果。</p>
+            <div class="flow" aria-label="检索数据流">
+              <span>文本</span><b>→</b><span>浏览器向量</span><b>→</b><span>seekdb</span><b>→</b><span>RRF 排序</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="workspace">
+          <aside class="control-panel">
+            <section class="panel-section">
+              <div class="section-title"><span>01</span><h2>推理运行时</h2><i id="model-state">未加载</i></div>
+              <div class="field-grid">
+                <label>计算后端
+                  <select id="backend">
+                    <option value="auto">自动 · WebGPU 优先</option>
+                    <option value="webgpu">强制 WebGPU</option>
+                    <option value="wasm">强制 WASM</option>
+                  </select>
+                </label>
+                <label>模型精度
+                  <select id="precision">
+                    <option value="int8">INT8 · 23.92 MB</option>
+                    <option value="fp32">FP32 · 91.33 MB</option>
+                  </select>
+                </label>
+              </div>
+              <label>文档推理批大小
+                <select id="batch-size">
+                  <option value="1">1 · 基线</option>
+                  <option value="4">4</option>
+                  <option value="8" selected>8 · 推荐</option>
+                  <option value="16">16</option>
+                </select>
+              </label>
+              <button class="button secondary full" id="load-model">初始化本地模型 <span>↗</span></button>
+              <div class="model-meta"><span>all-MiniLM-L6-v2</span><span>384 维</span><span>本地缓存</span></div>
+            </section>
+
+            <section class="panel-section">
+              <div class="section-title"><span>02</span><h2>知识集合</h2><i id="doc-count">0 篇</i></div>
+              <label>当前集合
+                <select id="collection" aria-label="当前知识集合"></select>
+              </label>
+              <div class="inline-form">
+                <input id="new-collection" placeholder="新集合名称，如 research" maxlength="32" />
+                <button class="icon-button" id="create-collection" title="创建集合">＋</button>
+              </div>
+            </section>
+
+            <section class="panel-section import-section">
+              <div class="section-title"><span>03</span><h2>导入文档</h2><i>TXT / MD / JSON</i></div>
+              <label class="dropzone" id="dropzone">
+                <input type="file" id="file-input" accept=".txt,.md,.json,text/plain,text/markdown,application/json" multiple />
+                <span class="upload-icon">↑</span>
+                <strong>拖入文件，或点击选择</strong>
+                <small>文本按非空行切分 · 单批最多 100 篇</small>
+              </label>
+              <button class="button secondary full" id="import-sample">导入 24 篇可复现实验语料 <span>＋</span></button>
+              <div class="progress-track" hidden id="import-progress"><i></i></div>
+              <p class="status-message" id="import-status" aria-live="polite"></p>
+            </section>
+
+            <section class="experiment-card">
+              <span class="experiment-label">REPRODUCIBLE LAB</span>
+              <h3>不凭感觉，<br />看真实实验数据。</h3>
+              <p>同机对比 FP32 / INT8、批量优化、Recall@5、nDCG@5 与冷 / 热延迟。</p>
+              <button class="text-button" id="run-experiment">运行完整实验 <span>→</span></button>
+            </section>
+          </aside>
+
+          <section class="search-panel">
+            <div class="search-heading">
+              <div><p class="eyebrow">HYBRID EXPLORER</p><h2>向你的知识提问</h2></div>
+              <span class="collection-chip" id="active-collection">personal_kb</span>
+            </div>
+            <div class="query-box">
+              <label for="query">语义查询</label>
+              <textarea id="query" rows="3">How does hybrid search combine keywords and vectors?</textarea>
+              <div class="query-bottom">
+                <label class="keyword-field">全文关键词 <input id="keyword" value="hybrid" maxlength="100" /></label>
+                <button class="button primary" id="search"><span class="search-symbol">⌕</span> 混合检索</button>
+              </div>
+            </div>
+            <div class="query-presets" id="query-presets" aria-label="示例查询"></div>
+
+            <div class="result-toolbar">
+              <h3>排序结果 <span id="result-count">—</span></h3>
+              <div class="timings">
+                <span>查询向量 <b id="query-ms">—</b></span>
+                <span>seekdb <b id="db-ms">—</b></span>
+                <span>端到端 <b id="total-ms">—</b></span>
+              </div>
+            </div>
+            <div class="engine-note"><span>DB</span><p>排序发生在 <strong>seekdb DBMS_HYBRID_SEARCH</strong> 内部 · HNSW + FULLTEXT · RRF</p></div>
+            <div id="results" class="results" aria-live="polite">
+              <div class="empty-state">
+                <span class="empty-orbit"><i></i></span>
+                <h3>先导入一点知识</h3>
+                <p>导入内置语料后，试试“混合检索如何工作”。<br />所有原文与排序分数都会在这里呈现。</p>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section class="proof-strip">
+          <div><span>01</span><strong>100%</strong><p>文档与查询向量<br />均在浏览器生成</p></div>
+          <div><span>02</span><strong>3.819×</strong><p>同口径 FP32 / INT8<br />模型文件压缩比</p></div>
+          <div><span>03</span><strong>RRF</strong><p>数据库内混合排序<br />非客户端结果合并</p></div>
+          <div><span>04</span><strong>2 后端</strong><p>WebGPU 优先<br />WASM 自动降级</p></div>
+        </section>
+      </main>
+      <footer><span>栖光 / LOCAL LIGHT</span><p>Transformers.js × ONNX Runtime Web × seekdb</p><span>2026</span></footer>
+    </div>
+
+    <dialog id="experiment-dialog">
+      <div class="dialog-header"><div><p class="eyebrow">MEASURED, NOT CLAIMED</p><h2>端侧推理实验台</h2></div><button class="icon-button" id="close-experiment">×</button></div>
+      <div id="experiment-content" class="experiment-content"><p>实验会创建两个临时 seekdb 集合，在真实应用中计算并检索，然后下载完整原始数据。</p></div>
+      <div class="dialog-actions"><button class="button secondary" id="download-evidence" disabled>下载原始 JSON</button><button class="button primary" id="start-experiment">开始实测</button></div>
+    </dialog>
+    <div class="toast" id="toast" role="status"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "result": "PASS",
+  "testedAt": "2026-11-14T17:52:39.256Z",
+  "sdk": "seekdb@1.4.0",
+  "mode": "local-server-tcp",
+  "checks": {
+    "databaseHybridReturnsBothBranches": true,
+    "originalTextReturned": true,
+    "indexRefreshAndIncrementalWrite": true
+  },
+  "initialIds": [
+    "keyword",
+    "semantic",
+    "other"
+  ],
+  "writeMs": 118.35889999999972,
+  "refreshMs": 1919.1198,
+  "databaseMs": 34.996399999999994
+}

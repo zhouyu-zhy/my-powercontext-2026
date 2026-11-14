@@ -1,0 +1,31 @@
+{
+  "name": "local-light-knowledge-base",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "postinstall": "node scripts/prepare-ort.mjs",
+    "setup": "npm install && npm run models",
+    "models": "node scripts/download-models.mjs",
+    "dev": "node server.mjs",
+    "build": "vite build",
+    "check": "node --check server.mjs && node --check src/main.js && node --check src/embedder.worker.js && node --check src/experiment.js && node --check scripts/browser-e2e.mjs && node --check scripts/db-smoke.mjs && node --check scripts/download-models.mjs",
+    "test:db": "node scripts/db-smoke.mjs",
+    "test:browser": "node scripts/browser-e2e.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "4.3.2",
+    "@oceanbase/seekdb-node": "^1.4.0",
+    "seekdb": "1.4.0"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1",
+    "vite": "7.3.8"
+  },
+  "overrides": {
+    "adm-zip": "0.6.1"
+  }
+}
