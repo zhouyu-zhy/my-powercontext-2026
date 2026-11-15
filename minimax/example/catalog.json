@@ -1,0 +1,10 @@
+[
+  {"id":"RES-12-v1","kind":"spec","path":"example/spec/RES-12-v1.md","topics":"reservation resource filter","active":false},
+  {"id":"RES-12-v2","kind":"spec","path":"example/spec/RES-12-v2.md","topics":"reservation resource filter","active":true},
+  {"id":"RES-02","kind":"spec","path":"example/spec/RES-02.md","topics":"reservation compatibility filter","active":true},
+  {"id":"NOTIFY-01","kind":"spec","path":"example/spec/NOTIFY-01.md","topics":"notification email","active":true},
+  {"id":"listReservations","kind":"code","path":"example/before/reservations.mjs","topics":"reservation resource filter","active":true},
+  {"id":"resource-tests","kind":"test","path":"example/tests/resource.test.mjs","topics":"reservation resource filter","active":true},
+  {"id":"compatibility-tests","kind":"test","path":"example/tests/compatibility.test.mjs","topics":"reservation compatibility filter","active":true},
+  {"id":"test-fixture","kind":"test","path":"example/tests/fixture.mjs","topics":"reservation resource filter","active":true}
+]

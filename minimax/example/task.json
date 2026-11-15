@@ -1,0 +1,6 @@
+{
+  "id": "res-12",
+  "objective": "Add the optional resource filter to listReservations using current RES-12 and preserve RES-02.",
+  "keywords": ["reservation", "filter"],
+  "target": "example/after/reservations.mjs"
+}

@@ -1,0 +1,16 @@
+diff --git a/example/before/reservations.mjs b/example/after/reservations.mjs
+index 9bd5020..749fc2a 100644
+--- a/example/before/reservations.mjs
++++ b/example/after/reservations.mjs
+@@ -1,5 +1,9 @@
+-export function listReservations(reservations, { state } = {}) {
++export function listReservations(reservations, { state, resource } = {}) {
++  const resourceCode = resource?.trim().toLowerCase();
+   return reservations
+-    .filter(reservation => state === undefined || reservation.state === state)
++    .filter(reservation =>
++      (state === undefined || reservation.state === state) &&
++      (!resourceCode || reservation.resource?.trim().toLowerCase() === resourceCode)
++    )
+     .sort((left, right) => left.startsAt.localeCompare(right.startsAt));
+ }
