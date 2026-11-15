@@ -150,8 +150,18 @@ async function main() {
   let db;
   try {
     const endpoint = runtime.connectionOptions();
-    if (endpoint.transport !== "tcp") throw new Error("Expected local seekdb TCP endpoint");
-    db = await mysql.createConnection({ host: endpoint.host, port: endpoint.port, user: endpoint.user, database: "test" });
+    const connectionOptions = { user: endpoint.user, database: "test" };
+    if (endpoint.transport === "tcp") {
+      connectionOptions.host = endpoint.host;
+      connectionOptions.port = endpoint.port;
+    } else if (endpoint.transport === "unix_socket") {
+      connectionOptions.socketPath = endpoint.unixSocket;
+    } else if (endpoint.transport === "named_pipe") {
+      connectionOptions.socketPath = endpoint.namedPipe;
+    } else {
+      throw new Error(`Unsupported seekdb transport: ${endpoint.transport}`);
+    }
+    db = await mysql.createConnection(connectionOptions);
     await db.execute(`CREATE TABLE IF NOT EXISTS engineering_documents (
       project VARCHAR(60), id VARCHAR(100), kind VARCHAR(8), path VARCHAR(255), topics VARCHAR(500),
       active BOOLEAN, content TEXT, sha256 CHAR(64), PRIMARY KEY(project, id)
