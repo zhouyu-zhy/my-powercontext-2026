@@ -57,6 +57,26 @@ def memory_channel_hits(
     )
 
 
+def memory_channel_rows(
+    rows: Iterable[Mapping[Any, Any]],
+    memories: tuple[ArtifactRef, ...],
+    /,
+) -> MemorySearchChannels:
+    """Split one two-channel candidate result into the ordered hits each channel reported.
+
+    A single statement interleaves nothing: each member keeps its own ranking, so the channel label
+    is all that is needed to hand the fusion the same two rankings the separate queries returned.
+    """
+
+    members: dict[str, list[Mapping[Any, Any]]] = {}
+    for row in rows:
+        members.setdefault(str(row["channel"]), []).append(row)
+    return MemorySearchChannels(
+        fts=memory_channel_hits(members.get("fts", ()), memories),
+        vector=memory_channel_hits(members.get("vector", ()), memories),
+    )
+
+
 class MemoryIndex(Protocol):
     """Optional query projection updated in the authoritative write transaction."""
 
@@ -247,6 +267,15 @@ class CompositeMemoryIndex:
         request: MemorySearchRequest,
         /,
     ) -> MemorySearchChannels:
+        native = next(
+            (index for index in self.indexes if index.capabilities.hybrid),
+            None,
+        )
+        if request.mode == "hybrid" and native is not None:
+            # A strategy that answers hybrid natively gets the request alone. Consulting the other
+            # members as well would run the two candidate queries its single statement replaces and
+            # hand the fusion one channel twice.
+            return await native.search(connection, scope_id, request)
         fts: tuple[MemoryChannelHit, ...] = ()
         vector: tuple[MemoryChannelHit, ...] = ()
         for index in self.indexes:
