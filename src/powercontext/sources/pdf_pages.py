@@ -120,6 +120,22 @@ _DOC_VOTE_PAGES = 3
 _PAGES_PER_REQUEST = 3
 
 _TERMS = re.compile(r"[a-z]+|\d+")
+# A filing identifier is read as whole alphanumeric words, so a company such as "3M" survives the
+# digits/letters split used for evidence terms.
+_NAME_TERMS = re.compile(r"[a-z0-9]+")
+# Filings are read by their printed sections: a financial question is answered on a statement page even
+# when the question never says "statement", and a legal or customer question is answered in the section
+# that names the subject. These headings are generic to a filing, not to a company or a question.
+_SECTION_HEADINGS = (
+    ("income", re.compile(r"^\s*consolidated statements? of income\b", re.IGNORECASE | re.MULTILINE)),
+    ("balance", re.compile(r"^\s*consolidated balance sheets?\b", re.IGNORECASE | re.MULTILINE)),
+    ("cash", re.compile(r"^\s*consolidated statements? of cash flows?\b", re.IGNORECASE | re.MULTILINE)),
+    ("notes", re.compile(r"^\s*notes to (?:the )?consolidated financial statements\b", re.IGNORECASE | re.MULTILINE)),
+    ("risk", re.compile(r"^\s*item\s*1a[\.\s]*risk factors\b", re.IGNORECASE | re.MULTILINE)),
+    ("legal", re.compile(r"^\s*item\s*3[\.\s]*legal proceedings\b", re.IGNORECASE | re.MULTILINE)),
+    ("customers", re.compile(r"^\s*(?:our\s+)?customers\s*$", re.IGNORECASE | re.MULTILINE)),
+    ("segment", re.compile(r"^\s*(?:sales and operating income.*)?business segments?\b|^\s*reportable segments?\b|segment information", re.IGNORECASE | re.MULTILINE)),
+)
 # One amount as a filing prints it: grouped by commas, or long enough to be a figure on its own. A
 # bare four-digit year is neither, because a filing dates its prose in the same words it counts in a
 # column, and only the column is the evidence.
@@ -450,7 +466,7 @@ def _names_document(words: set[str], joined: str, document_id: str) -> bool:
 
     name = _document_name(document_id)
     if len(name) < _NAME_MINIMUM:
-        return False
+        return name in words
     if name in words:
         return True
     return len(name) >= _PHRASE_NAME_MINIMUM and name in joined
@@ -466,7 +482,7 @@ def _named_document(question: str, document_ids: Iterable[str]) -> str:
     """
 
     listed = list(document_ids)
-    words = set(_TERMS.findall(question.casefold()))
+    words = set(_NAME_TERMS.findall(question.casefold()))
     joined = _NOT_A_WORD.sub("", question.casefold())
     stated = [document_id for document_id in listed if _names_document(words, joined, document_id)]
     if stated:
@@ -926,6 +942,86 @@ async def _plainly(memory: Any, question: str, limit: int) -> tuple[MemoryCitati
     return tuple(citations)
 
 
+def _anchor_pages(leaves: dict[tuple[str, int], _Leaf], question: str, document_id: str, cap: int = 12) -> list[_Leaf]:
+    """Pages that begin a filing section the question is phrased around."""
+    q = question.casefold()
+    order = ["income", "balance", "cash", "notes"]
+    if re.search(r"\b(legal|lawsuit|litigation|proceeding)", q):
+        order = ["legal", "risk"] + order
+    elif re.search(r"\b(customer|customers)\b", q):
+        order = ["risk", "customers"] + order
+    elif re.search(r"\b(risk|cyclical|uncertaint)", q):
+        order = ["risk"] + order
+    elif re.search(r"\b(note|restructur|accounting|impairment)\b", q):
+        order = ["notes", "income", "balance", "cash"]
+    elif re.search(r"\b(capital|expense|cash|ebitda|margin|income|balance|debt|tax|cost|revenue)\b", q):
+        order = ["income", "balance", "cash", "notes"]
+    elif re.search(r"\b(segment|sales|growth)\b", q):
+        order = ["segment", "income", "balance", "cash", "notes"]
+    order += [name for name, _ in _SECTION_HEADINGS if name not in order]
+    starts: dict[str, list[int]] = {}
+    for page in leaves.values():
+        head = "\n".join(page.body.splitlines()[:15])
+        if len(re.findall(r"^\s*item\s+\d+", head, re.IGNORECASE | re.MULTILINE)) >= 2:
+            continue  # table of contents
+        matched = [name for name, pattern in _SECTION_HEADINGS if pattern.search(head)]
+        if len(matched) >= 3:
+            continue  # a table of contents lists several sections and is not one of them
+        for name in matched:
+            starts.setdefault(name, []).append(page.number)
+            break
+    picked: list[_Leaf] = []
+    seen: set[int] = set()
+
+    def add(number: int) -> None:
+        page = leaves.get((document_id, number))
+        if page is not None and page.number not in seen:
+            seen.add(page.number)
+            picked.append(page)
+
+    headings: list[_Leaf] = []
+    terms = set(_question_terms(question))
+    if terms:
+        for page in leaves.values():
+            if len(headings) >= 2:
+                break
+            head = "\n".join(page.body.splitlines()[:15])
+            if len(re.findall(r"^\s*item\s+\d+", head, re.IGNORECASE | re.MULTILINE)) >= 2:
+                continue
+            for line in page.body.splitlines():
+                heading = line.strip()
+                if re.match(r"^note\s*\d+", heading, re.IGNORECASE) and any(
+                    term in heading.casefold() for term in terms
+                ):
+                    headings.append(page)
+                    break
+                if re.match(r"^item\s*3\b", heading, re.IGNORECASE) and "legal" in heading.casefold():
+                    headings.append(page)
+                    break
+
+    for name in order:
+        numbers = sorted(set(starts.get(name, ())))
+        if not numbers:
+            continue
+        if name == "risk":
+            for offset in range(8):
+                add(numbers[0] + offset)
+        else:
+            span = 2 if name in ("legal", "notes", "segment", "customers") else 3
+            for start in numbers[:3]:
+                for offset in range(span):
+                    add(start + offset)
+        if len(picked) >= cap:
+            break
+    result: list[_Leaf] = []
+    held: set[int] = set()
+    for page in headings + picked:
+        if page.number not in held:
+            held.add(page.number)
+            result.append(page)
+    return result[:cap]
+
+
 async def _evidence(memory: Any, question: str, limit: int) -> tuple[MemoryCitation, ...]:
     """Return up to ``limit`` distinct page citations, best evidence first.
 
@@ -962,9 +1058,20 @@ async def _evidence(memory: Any, question: str, limit: int) -> tuple[MemoryCitat
         ordered = sorted(_fuse(leaves, pages, terms, question), key=_order)
         wanted = _filing(ordered, question)
         neighbours = {key: leaf for key, leaf in leaves.items() if key[0] == wanted}
-        delivery: list[Any] = _spread(
+        base: list[Any] = _spread(
             [leaf for leaf in ordered if leaf.document_id == wanted], neighbours, limit
         )
+        anchors = _anchor_pages(neighbours, question, wanted, cap=min(8, max(0, limit - 12)))
+        delivery: list[Any] = []
+        held: set[Any] = set()
+        for page in list(base[:12]) + anchors + base[12:]:
+            key = page.location or (page.document_id, page.number)
+            if key in held:
+                continue
+            held.add(key)
+            delivery.append(page)
+            if len(delivery) >= limit:
+                break
         delivery += [leaf for leaf in ordered if leaf.document_id != wanted][
             : max(0, limit - len(delivery) // 2)
         ]
