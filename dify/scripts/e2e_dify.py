@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -51,25 +52,31 @@ def main() -> None:
     args = parser.parse_args()
     api_key = os.environ["DIFY_API_KEY"]
 
-    first = chat(args.base_url, api_key, "player001", "我迟到是因为电梯突然进入了省电模式。", "reviewer-001")
+    run_id = str(time.time_ns())
+    player_one = f"alice-{run_id}-one"
+    player_two = f"alice-{run_id}-two"
+
+    first = chat(args.base_url, api_key, player_one, "我迟到是因为电梯突然进入了省电模式。", "reviewer-001")
     first_answer = first.get("answer") or ""
     assert "首案或独立审理" in first_answer, first_answer
     assert "案卷已写入 PowerContext" in first_answer, first_answer
 
-    second = chat(args.base_url, api_key, "player001", "我又迟到了，这次是闹钟被猫判了缓刑。", "reviewer-001")
+    second = chat(args.base_url, api_key, player_one, "我又迟到了，这次是闹钟被猫判了缓刑。", "reviewer-001")
     second_answer = second.get("answer") or ""
     assert second.get("conversation_id") != first.get("conversation_id")
     assert "再犯审理" in second_answer, second_answer
     assert "案卷已写入 PowerContext" in second_answer, second_answer
 
-    other = chat(args.base_url, api_key, "player002", "我又迟到了，这次是闹钟被猫判了缓刑。", "reviewer-001")
+    other = chat(args.base_url, api_key, player_two, "我又迟到了，这次是闹钟被猫判了缓刑。", "reviewer-001")
     other_answer = other.get("answer") or ""
     assert "首案或独立审理" in other_answer, other_answer
+    assert player_one not in other_answer, other_answer
     assert "案卷已写入 PowerContext" in other_answer, other_answer
 
     evidence = {
         "result": "PASS",
         "tested_at": datetime.now(timezone.utc).isoformat(),
+        "player_ids": [player_one, player_two],
         "checks": {
             "first_player_starts_with_empty_history": True,
             "same_player_in_new_conversation_is_repeat": True,
@@ -81,7 +88,7 @@ def main() -> None:
     rendered = json.dumps(evidence, ensure_ascii=False, indent=2)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(rendered + "\n", encoding="utf-8")
+        args.output.write_text(rendered + "\n", encoding="utf-8", newline="\n")
     print(rendered)
 
 

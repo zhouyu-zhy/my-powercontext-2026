@@ -2,7 +2,7 @@
 
 一个使用 **Dify Chatflow + PowerContext** 的互动 NPC 游戏。玩家提交迟到、拖延或搞砸事情的辩解，法官生成幽默的虚构判决并保存案卷；在新会话中使用同一玩家编号，法官会召回旧案并按再犯审理。
 
-PowerContext 不是展示性连接：它决定回复中的“首案/再犯”状态和历史回声。模型不能自行宣称再犯或保存成功，这两个状态分别由真实召回结果和 HTTP 写入回执决定。
+PowerContext 不是展示性连接：它决定回复中的“首案/再犯”状态和历史回声。召回节点会解析 PreparedContext，并按 `case_player_id` 精确筛选当前玩家案卷；即使全文召回归入其他玩家记录，也不会误判再犯或把他人旧案交给模型。模型不能自行宣称再犯或保存成功，这两个状态分别由筛选后的真实召回结果和 HTTP 写入回执决定。再犯只影响审理标签与历史回声，有罪/无罪/缓刑仍根据当前辩解生成。
 
 ## 运行结构
 
@@ -10,7 +10,7 @@ PowerContext 不是展示性连接：它决定回复中的“首案/再犯”状
 Start(player_id, sys.query)
   → 校验输入并组装 JSON
   → HTTP POST /v1/context/prepare
-  → 解析 empty / ready / error
+  → 解析 empty / ready / error，并精确过滤当前玩家案卷
   → Dify LLM 生成虚构判决 JSON
   → 代码节点整理判决和案卷
   → HTTP POST /v1/memory/remember（禁止自动重试）
@@ -93,11 +93,11 @@ POWERCONTEXT_SERVER_AUTH_TOKEN=replace-with-a-locally-generated-random-token
 
 每个新会话都在输入表单填写玩家编号。
 
-1. 会话 A：`player001`，发送“我迟到是因为电梯突然进入了省电模式。”预期显示“首案或独立审理”，并返回真实 Artifact ID。
-2. 新建会话 B，仍用 `player001`，发送“我又迟到了，这次是闹钟被猫判了缓刑。”预期显示“再犯审理”，历史回声提及旧案，并返回新的 Artifact ID。
-3. 新建会话 C，改用 `player002`，发送相同辩解。预期仍是“首案或独立审理”，不能继承 `player001` 的旧案。
+1. 会话 A：`alice-one`，发送“我迟到是因为电梯突然进入了省电模式。”预期显示“首案或独立审理”，并返回真实 Artifact ID。
+2. 新建会话 B，仍用 `alice-one`，发送“我又迟到了，这次是闹钟被猫判了缓刑。”预期显示“再犯审理”，历史回声提及旧案，并返回新的 Artifact ID。
+3. 新建会话 C，改用 `alice-two`，发送相同辩解。预期仍是“首案或独立审理”，不能继承 `alice-one` 的旧案，历史回声也不能提及 `alice-one`。
 
-首次空档案返回 `empty` 是正常行为。召回失败时仍可判案，但不会虚构旧案；写入未得到成功回执时，回复会明确提示未确认保存。
+`alice-one` 和 `alice-two` 共用全文词项，用于覆盖“Server 返回他人记录但玩法仍须判首案”的边界。首次空档案返回 `empty` 是正常行为。召回失败时仍可判案，但不会虚构旧案；写入未得到成功回执时，回复会明确提示未确认保存。
 
 ## 4. 可执行验收
 
@@ -110,10 +110,10 @@ uv run --with pyyaml==6.0.3 python scripts/check_chatflow.py
 真实 PowerContext 闭环，脚本会创建独立的一次性 Scope，不污染正式游戏案卷：
 
 ```bash
-python scripts/e2e_powercontext.py --output evidence/powercontext-e2e.json
+uv run --with pyyaml==6.0.3 python scripts/e2e_powercontext.py --output evidence/powercontext-e2e.json
 ```
 
-该脚本依次断言：空 Scope 返回 `empty`；首案写入有 `records`；新的 HTTP 请求能召回首个唯一标记；第二案写入后，再次召回同时包含两个唯一标记。启用认证时从环境变量 `POWERCONTEXT_API_TOKEN` 读取 Token。
+该脚本依次断言：空 Scope 返回 `empty`；首案写入有 `records`；新的 HTTP 请求能召回首个唯一标记；全文检索确实会把 `alice-one` 的旧案返回给 `alice-two` 查询，但 DSL 代码节点会过滤为他人历史为空且 `repeat_offender=0`；本人仍为 `repeat_offender=1`；第二案写入后，再次召回同时包含两个唯一标记。启用认证时从环境变量 `POWERCONTEXT_API_TOKEN` 读取 Token。
 
 发布 Dify 应用后，在应用“访问 API”页面创建应用 API Key，并只在当前终端设置：
 
@@ -132,7 +132,7 @@ python scripts/e2e_dify.py \
 | --- | --- | --- |
 | PowerContext 1.5.1 安装、配置校验和健康检查 | 2026-11-15 本机通过 | `health/live` 返回 `status=ok` |
 | DSL YAML、图连接、变量和代码节点行为 | 2026-11-15 本机通过 | `check_chatflow.py` 输出 PASS |
-| 真实 Memory 写入和独立调用召回 | 2026-11-15 本机通过 | `evidence/powercontext-e2e.json` |
+| 真实 Memory 写入、跨玩家过滤和首案/再犯判定 | 2026-11-15 本机通过 | `evidence/powercontext-e2e.json` |
 | Dashboard 同一 Scope 展示两份案卷 | 2026-11-15 页面结构核验通过 | `evidence/powercontext-dashboard-snapshot.md` |
 | Dify 1.17.1 实际导入、模型调用和三会话运行 | **尚未执行** | 需要可用 Dify 工作区和应用 API Key；运行后生成 `evidence/dify-e2e.json` |
 

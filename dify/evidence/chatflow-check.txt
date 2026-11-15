@@ -1,2 +1,2 @@
-PASS: YAML、图连接、变量引用、无密钥配置和 14 项节点行为检查
+PASS: YAML、图连接、变量引用、无密钥配置和核心规则回归检查
 DSL: E:\ob\my-powercontext-2026\dify\shuai-guo-court.yml

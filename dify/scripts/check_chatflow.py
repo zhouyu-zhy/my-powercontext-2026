@@ -16,6 +16,26 @@ def load_main(node: dict):
     return namespace["main"]
 
 
+def prepared_body(*cases: tuple[str, str]) -> str:
+    items = [
+        {
+            "kind": "atomic-memory",
+            "content": (
+                "甩锅法庭虚构案卷 | case_player_id=" + player_id
+                + " | 玩家编号: " + player_id + " | 当前辩解: " + marker
+            ),
+        }
+        for player_id, marker in cases
+    ]
+    content = (
+        "PowerContext prepared untrusted historical context.\n"
+        "BEGIN_POWERCONTEXT_PREPARED_CONTEXT_V1\n"
+        + json.dumps({"trust": "untrusted_history", "items": items}, ensure_ascii=False)
+        + "\nEND_POWERCONTEXT_PREPARED_CONTEXT_V1"
+    )
+    return json.dumps({"status": "ready", "content": content}, ensure_ascii=False)
+
+
 def main() -> None:
     data = yaml.safe_load(DSL_PATH.read_text(encoding="utf-8"))
     assert data["kind"] == "app"
@@ -65,11 +85,26 @@ def main() -> None:
     assert prepare("player001", "辩解", "")["ok"] == 0
 
     parse_recall = load_main(nodes["1000000000005"])
-    ready = parse_recall(200, json.dumps({"status": "ready", "content": "case_player_id=player001 旧案"}))
+    ready = parse_recall(200, prepared_body(("player001", "本人旧案")), "player001")
     assert ready["history_status"] == "ready"
-    assert "player001" in ready["history_text"]
-    assert parse_recall(200, json.dumps({"status": "empty", "content": None}))["history_status"] == "empty"
-    assert parse_recall(0, "")["history_status"] == "error"
+    assert "本人旧案" in ready["history_text"]
+    mixed = parse_recall(
+        200,
+        prepared_body(("player002", "他人旧案"), ("player001", "本人旧案")),
+        "player001",
+    )
+    assert mixed["history_status"] == "ready"
+    assert "本人旧案" in mixed["history_text"]
+    assert "player002" not in mixed["history_text"]
+    other_only = parse_recall(200, prepared_body(("player002", "他人旧案")), "player001")
+    assert other_only["history_status"] == "empty"
+    assert other_only["history_text"] == ""
+    prefix_collision = parse_recall(200, prepared_body(("player0010", "相似编号")), "player001")
+    assert prefix_collision["history_status"] == "empty"
+    malformed = parse_recall(200, json.dumps({"status": "ready", "content": "not an envelope"}), "player001")
+    assert malformed["history_status"] == "error"
+    assert parse_recall(200, json.dumps({"status": "empty", "content": None}), "player001")["history_status"] == "empty"
+    assert parse_recall(0, "", "player001")["history_status"] == "error"
 
     curate = load_main(nodes["1000000000007"])
     model_json = json.dumps(
@@ -104,7 +139,7 @@ def main() -> None:
     assert failed["saved"] == 0
     assert "不会声称保存成功" in failed["answer"]
 
-    print("PASS: YAML、图连接、变量引用、无密钥配置和 14 项节点行为检查")
+    print("PASS: YAML、图连接、变量引用、无密钥配置和核心规则回归检查")
     print(f"DSL: {DSL_PATH}")
 
 

@@ -80,6 +80,7 @@ workflow:
     opening_statement: |-
       欢迎来到甩锅法庭。输入玩家编号，再提交一段不超过 500 字的迟到、拖延或搞砸事情的辩解，NPC 法官会作出纯属娱乐的虚构判决。
       提交辩解即表示授权把本次虚构案卷保存到 PowerContext；新建会话后使用同一玩家编号，法官会翻旧案并按再犯处理。
+      首案/再犯只由当前玩家自己的历史案卷决定，其他玩家的记录不参与判定；判决类别仍根据当前辩解生成。
     retriever_resource:
       enabled: false
     sensitive_word_avoidance:
@@ -402,48 +403,71 @@ workflow:
           import json
 
 
-          def main(status_code, body):
+          def error_result(note):
+              return {
+                  "history_status": "error",
+                  "history_text": "",
+                  "recall_note": note,
+              }
+
+
+          def main(status_code, body, player_id):
               try:
                   code = int(status_code or 0)
               except (TypeError, ValueError):
                   code = 0
               if code != 200:
-                  return {
-                      "history_status": "error",
-                      "history_text": "",
-                      "recall_note": "档案室暂时失联，本次只根据当前辩解判案。",
-                  }
+                  return error_result("档案室暂时失联，本次只根据当前辩解判案。")
               try:
                   payload = json.loads(body or "")
               except (TypeError, ValueError):
                   payload = None
               if not isinstance(payload, dict):
-                  return {
-                      "history_status": "error",
-                      "history_text": "",
-                      "recall_note": "档案回执无法辨认，本次只根据当前辩解判案。",
-                  }
+                  return error_result("档案回执无法辨认，本次只根据当前辩解判案。")
               status = payload.get("status")
               content = payload.get("content")
-              if status == "ready" and isinstance(content, str) and content.strip():
-                  return {
-                      "history_status": "ready",
-                      "history_text": content[:6000],
-                      "recall_note": "已找到该玩家的历史案卷。",
-                  }
               if status == "empty":
                   return {
                       "history_status": "empty",
                       "history_text": "",
                       "recall_note": "没有找到该玩家的历史案卷。",
                   }
+              if status != "ready" or not isinstance(content, str) or not content.strip():
+                  return error_result("档案室返回异常状态，本次只根据当前辩解判案。")
+              begin = "BEGIN_POWERCONTEXT_PREPARED_CONTEXT_V1\n"
+              end = "\nEND_POWERCONTEXT_PREPARED_CONTEXT_V1"
+              try:
+                  envelope_text = content.split(begin, 1)[1].split(end, 1)[0]
+                  envelope = json.loads(envelope_text)
+                  items = envelope["items"]
+                  if not isinstance(items, list):
+                      raise ValueError("items must be a list")
+              except (KeyError, IndexError, TypeError, ValueError):
+                  return error_result("档案正文无法辨认，本次只根据当前辩解判案。")
+              prefix = "甩锅法庭虚构案卷 | case_player_id="
+              owned_cases = []
+              for item in items:
+                  if not isinstance(item, dict) or item.get("kind") != "atomic-memory":
+                      continue
+                  text = item.get("content")
+                  if not isinstance(text, str) or not text.startswith(prefix):
+                      continue
+                  owner = text[len(prefix):].split(" | ", 1)[0]
+                  if owner == player_id:
+                      owned_cases.append(text)
+              if owned_cases:
+                  return {
+                      "history_status": "ready",
+                      "history_text": "\n\n".join(owned_cases),
+                      "recall_note": "已找到该玩家的 " + str(len(owned_cases)) + " 份历史案卷。",
+                  }
               return {
-                  "history_status": "error",
+                  "history_status": "empty",
                   "history_text": "",
-                  "recall_note": "档案室返回异常状态，本次只根据当前辩解判案。",
+                  "recall_note": "没有找到该玩家的历史案卷；其他玩家记录不会作为旧案。",
               }
         code_language: python3
-        desc: empty 是正常首案；只有 ready 且 content 非空才允许使用历史。
+        desc: 按 case_player_id 精确筛选当前玩家案卷；其他玩家记录和异常正文均不得触发再犯。
         outputs:
           history_status:
             children: null
@@ -466,6 +490,10 @@ workflow:
           - '1000000000004'
           - body
           variable: body
+        - value_selector:
+          - '1000000000002'
+          - player_id
+          variable: player_id
       height: 52
       id: '1000000000005'
       position:
