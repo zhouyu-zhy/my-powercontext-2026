@@ -1,0 +1,65 @@
+{
+  "generated_at": "2026-11-15T05:20:07.339637+00:00",
+  "powercontext_version": "1.5.1",
+  "examples": [
+    {
+      "label": "重排实验",
+      "query": "RERANK",
+      "result": {
+        "status": "ready",
+        "items": [
+          {
+            "project": "RERANK",
+            "title": "建立基准运行配置",
+            "notes": "锁定随机种子 42，按主题分层抽样。基准配置重新跑了三次，结果一致。",
+            "next_step": "把配置和评估数据版本写进实验报告。",
+            "artifact": {
+              "family": "atomic-memory",
+              "artifact_id": "art_0bacb20d222f4d6c85fbab5cd1ffd9c3",
+              "revision": 1
+            }
+          },
+          {
+            "project": "RERANK",
+            "title": "重排模型 A/B 对照",
+            "notes": "在固定的 120 条评估样本上，加入重排后 nDCG@10 从 0.62 到 0.70。样本只覆盖公开论文摘要。",
+            "next_step": "补查重排的 P95 延迟，用中文论文分组复测。",
+            "artifact": {
+              "family": "atomic-memory",
+              "artifact_id": "art_9c681d678aff4c7988534307efdba0d7",
+              "revision": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "消融实验",
+      "query": "ABLATION",
+      "result": {
+        "status": "ready",
+        "items": [
+          {
+            "project": "ABLATION",
+            "title": "移除查询扩展的消融",
+            "notes": "查询扩展主要改善含缩写的问句。全量报告仍需按查询长度切分。",
+            "next_step": "抽取 30 条缩写查询，标注查询扩展带来的误召回。",
+            "artifact": {
+              "family": "atomic-memory",
+              "artifact_id": "art_039ddca7860149eea82246f337633fc0",
+              "revision": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "无匹配示例",
+      "query": "zxcvbnopqrst",
+      "result": {
+        "status": "empty",
+        "items": []
+      }
+    }
+  ]
+}

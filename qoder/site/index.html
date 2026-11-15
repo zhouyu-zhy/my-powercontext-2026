@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="保存研究交接笔记，用 PowerContext 找回实验记录和下一步。">
+  <title>研务接续台</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="shell header-line">
+      <a class="brand" href="./"><span aria-hidden="true">研</span>研务接续台</a>
+      <div class="engine">PowerContext <span id="mode" role="status">连接中</span></div>
+    </div>
+  </header>
+  <main class="shell">
+    <section class="hero">
+      <h1>把今天的实验，<br><em>接到下一次。</em></h1>
+      <p>记录每次实验的结论和下一步。回到课题时，用项目关键词找回交接笔记和原始引用。</p>
+    </section>
+    <div class="workspace">
+      <section class="panel" aria-labelledby="search-title">
+        <h2 id="search-title">找回实验记录</h2>
+        <form id="search" hidden>
+          <label for="query">项目关键词</label>
+          <div class="search-row">
+            <input id="query" name="query" maxlength="160" required placeholder="例如 RERANK">
+            <button>检索</button>
+          </div>
+        </form>
+        <div id="examples" class="examples" hidden aria-label="演示查询"></div>
+        <p id="search-status" class="status" role="status">正在初始化…</p>
+        <div id="results" class="results"></div>
+      </section>
+      <section class="panel side" aria-labelledby="note-title">
+        <h2 id="note-title">写下交接笔记</h2>
+        <form id="write" hidden>
+          <label>项目关键词<input name="project" maxlength="48" required placeholder="例如 RERANK"></label>
+          <label>标题<input name="title" maxlength="100" required></label>
+          <label>实验记录<textarea name="notes" maxlength="650" rows="4" required></textarea></label>
+          <label>下一步<textarea name="next_step" maxlength="240" rows="2" required></textarea></label>
+          <button>保存至 PowerContext</button>
+          <p id="save-status" class="status" role="status"></p>
+        </form>
+        <div id="guide" hidden>
+          <p>公开站点回放 PowerContext 对虚构实验笔记的真实召回结果。启动本地工作台即可保存自己的研究记录并实时检索。</p>
+          <a href="https://github.com/zhouyu-zhy/my-powercontext-2026/tree/submit/2026-qoder-powercontext/qoder#本地运行">查看本地运行说明 ↗</a>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

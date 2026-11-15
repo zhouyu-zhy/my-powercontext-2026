@@ -1,0 +1,55 @@
+:root {
+  color-scheme: light;
+  --ink: #172b23;
+  --muted: #526357;
+  --green: #14513b;
+  --border: #d9dcd0;
+  --paper: #fcfbf6;
+  background: #f3f2e9;
+  color: var(--ink);
+  font-family: "Inter", "Microsoft YaHei", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; }
+.shell { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
+.top { border-bottom: 1px solid var(--border); }
+.header-line { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand { color: var(--ink); font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+.brand span { display: grid; place-items: center; background: var(--green); color: #fff; border-radius: 7px; width: 32px; height: 32px; }
+.engine { font-size: .84rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; }
+#mode { color: var(--green); background: #dce9d9; border-radius: 100px; padding: 4px 10px; }
+.hero { padding: clamp(32px, 6vw, 78px) 0 30px; border-bottom: 1px solid var(--border); }
+h1 { font: 700 clamp(2.1rem, 6.2vw, 4.8rem)/1.13 "Noto Serif CJK SC", "Songti SC", SimSun, serif; margin: 0; letter-spacing: -.04em; }
+h1 em { color: var(--green); font-style: normal; }
+.hero p, #guide p { line-height: 1.8; color: var(--muted); }
+.hero p { margin: 21px 0 0; max-width: 32em; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); align-items: start; gap: 20px; padding-block: 22px 54px; }
+.panel { padding: clamp(17px, 3vw, 30px); background: var(--paper); border: 1px solid var(--border); border-radius: 15px; }
+.side { background: #eaf0e5; }
+h2 { font-size: 1.27rem; margin: 0 0 20px; }
+form, label { display: grid; gap: 8px; }
+form { gap: 14px; }
+label { font-weight: 600; font-size: .88rem; }
+input, textarea, button { font: inherit; border-radius: 8px; }
+input, textarea { width: 100%; min-width: 0; border: 1px solid #b8c5b7; background: #fff; color: var(--ink); padding: 10px; }
+textarea { resize: vertical; }
+button { padding: 10px 14px; min-height: 42px; cursor: pointer; background: var(--green); color: white; border: 1px solid var(--green); }
+button:disabled { opacity: .6; cursor: wait; }
+:focus-visible { outline: 3px solid #3b7b64; outline-offset: 3px; }
+.search-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.examples { display: flex; flex-wrap: wrap; gap: 8px; }
+.examples button { color: var(--green); background: transparent; }
+.examples button[aria-pressed="true"] { color: white; background: var(--green); }
+.status { font-size: .88rem; color: var(--muted); overflow-wrap: anywhere; }
+.status:empty { display: none; }
+.results { display: grid; gap: 12px; }
+.record { padding: 16px; border-left: 3px solid #75a787; background: #eef2e9; border-radius: 0 8px 8px 0; overflow-wrap: anywhere; }
+.record h3 { margin: 5px 0 10px; font-size: 1.05rem; }
+.record p { margin: 8px 0; white-space: pre-wrap; line-height: 1.65; }
+.record small { color: var(--muted); font-size: .75rem; }
+.record footer { margin-top: 12px; }
+a { color: var(--green); }
+@media (max-width: 730px) {
+  .workspace { grid-template-columns: 1fr; }
+}
