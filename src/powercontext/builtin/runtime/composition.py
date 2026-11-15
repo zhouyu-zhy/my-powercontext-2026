@@ -639,6 +639,7 @@ async def open_builtin_runtime(
                 skill_publication_service=contexts.skill_publications,
                 remote_skill_distribution=contexts.remote_skill_distribution(),
                 statistics_service=contexts.statistics,
+                source_lifecycle=contexts.source_lifecycle,
                 record_service=contexts.records,
                 prompt_service=contexts.prompts,
                 recall_token_estimator=contexts.estimate_recall_tokens,

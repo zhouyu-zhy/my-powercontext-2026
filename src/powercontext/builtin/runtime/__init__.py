@@ -182,6 +182,11 @@ from powercontext.builtin.runtime.readiness import (
     RuntimeReadinessStatus,
     dependency_readiness_probe,
 )
+from powercontext.builtin.runtime.source_lifecycle import (
+    SourceLifecycleError,
+    SourceLifecycleEvent,
+    SourceLifecycleService,
+)
 from powercontext.builtin.statistics import (
     ArtifactInventoryStatistics,
     CandidateFamilyCount,
@@ -365,6 +370,9 @@ __all__ = [
     "SkillCandidate",
     "SkillGenerationOrigin",
     "SourceApplication",
+    "SourceLifecycleError",
+    "SourceLifecycleEvent",
+    "SourceLifecycleService",
     "SourceInventoryStatistics",
     "SourceReceipt",
     "SpawnArtifactProcessingWorkerLauncher",

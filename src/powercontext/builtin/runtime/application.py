@@ -254,6 +254,7 @@ from powercontext.builtin.runtime.recall_sufficiency import (
     build_recall_candidates,
     recall_effort,
 )
+from powercontext.builtin.runtime.source_lifecycle import SourceLifecycleService
 from powercontext.builtin.runtime.statistics import RelationalScopedStatistics, overview_selection
 from powercontext.builtin.scope import ScopeApplication, ScopeDescriptor, ScopeSelection
 from powercontext.builtin.scope.subject_sources import SubjectSourceService
@@ -430,6 +431,7 @@ PackageSnapshotResolver = Callable[[str, SkillPackageRef], Awaitable[SkillPackag
 SkillPackageUploader = Callable[[str, bytes, str | None, ArtifactRef | None], Awaitable[SkillCandidate]]
 SkillUsageRecorder = Callable[[str, SkillUsageCapture], Awaitable[SourceReceipt]]
 StatisticsServiceFactory = Callable[[str], RelationalScopedStatistics]
+SourceLifecycleFactory = Callable[[str], SourceLifecycleService]
 RecallTokenEstimator = Callable[[str, PreparedContextBuild], Awaitable[RecallTokenMeasurement | None]]
 RecallEffortSink = Callable[[RecallEffort], Awaitable[None]]
 Clock = Callable[[], datetime]
@@ -461,6 +463,7 @@ class _RuntimeStateError(RuntimeError):
             "skill-governance": "Managed Skill governance services are not configured",
             "skill-package": "Managed Skill package services are not configured",
             "skill-usage": "Managed Skill usage recording is not configured",
+            "source-lifecycle": "Source lifecycle services are not configured",
             "statistics": "Statistics services are not configured",
             "topic-memory-browse": "Topic Memory browsing is not configured",
         }
@@ -792,6 +795,19 @@ class ScopedStatisticsApplication:
                     "unit": "statistics",
                 },
             )
+
+
+class SourceLifecycleApplication:
+    """Select the Source lifecycle dependency graph for one Scope."""
+
+    def __init__(self, runtime: BuiltinRuntime) -> None:
+        self._runtime = runtime
+
+    def for_scope(self, scope_id: str, /) -> SourceLifecycleService:
+        factory = self._runtime._source_lifecycle
+        if factory is None:
+            raise _RuntimeStateError("source-lifecycle")
+        return factory(scope_id)
 
 
 class StatisticsApplication:
@@ -3042,6 +3058,7 @@ class BuiltinRuntime:
         skill_publication_service: SkillPublicationServiceFactory | None = None,
         remote_skill_distribution: RemoteSkillDistributionService | None = None,
         statistics_service: StatisticsServiceFactory | None = None,
+        source_lifecycle: SourceLifecycleFactory | None = None,
         record_service: RecordService | None = None,
         prompt_service: PromptService | None = None,
         recall_token_estimator: RecallTokenEstimator | None = None,
@@ -3098,6 +3115,7 @@ class BuiltinRuntime:
         self._skill_publication_service = skill_publication_service
         self._remote_skill_distribution = remote_skill_distribution
         self._statistics_service = statistics_service
+        self._source_lifecycle = source_lifecycle
         self._record_service = record_service
         self._prompt_service = prompt_service
         self._recall_token_estimator = recall_token_estimator
@@ -3146,6 +3164,7 @@ class BuiltinRuntime:
         self.skill = SkillApplication(self)
         self.remote_skills = RemoteSkillApplication(self)
         self.statistics = StatisticsApplication(self)
+        self.lifecycle = SourceLifecycleApplication(self)
         self.handoff_report: HandoffReportApplication | None = None
         self.artifact_processing_supervisor: ArtifactProcessingSupervisors | None = None
         self.processor = None if scope_ids is None else ScheduledSourceProcessor(self, scope_ids)

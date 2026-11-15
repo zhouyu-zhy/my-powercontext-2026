@@ -152,6 +152,7 @@ from powercontext.builtin.persistence.recurrence import RecurrenceRepository
 from powercontext.builtin.persistence.skill_packages import SkillPackageRepository
 from powercontext.builtin.persistence.skill_publications import SkillPublicationRepository
 from powercontext.builtin.persistence.source_definitions import SourceDefinitionManifestRepository
+from powercontext.builtin.persistence.source_lifecycle import SourceLifecycleRepository
 from powercontext.builtin.persistence.sources import SourceRepository, StoredSource
 from powercontext.builtin.persistence.statistics import StatisticsRepository
 from powercontext.builtin.persistence.supervision import (
@@ -190,6 +191,7 @@ from powercontext.builtin.runtime.protocols import (
 )
 from powercontext.builtin.runtime.recall import RelationalRecallTokenEstimator
 from powercontext.builtin.runtime.recurrence import RelationalRecurrenceLedger
+from powercontext.builtin.runtime.source_lifecycle import SourceLifecycleBindings, SourceLifecycleService
 from powercontext.builtin.runtime.statistics import RelationalScopedStatistics
 from powercontext.builtin.scope import ScopeApplication
 from powercontext.builtin.scope.subject_sources import SubjectSourceService
@@ -708,6 +710,8 @@ class RelationalContexts:
             PowerContext[BuiltinSources, BuiltinArtifacts, BuiltinTriggers],
         ] = {}
         self._source_locks: dict[str, asyncio.Lock] = {}
+        self._lifecycle_locks: dict[str, asyncio.Lock] = {}
+        self._source_lifecycle_graph = SourceLifecycleRepository(database)
         self._activation_locks: dict[str, asyncio.Lock] = {}
         self._experience_locks: dict[str, asyncio.Lock] = {}
         self._skill_publication_locks: dict[tuple[str, str, str], asyncio.Lock] = {}
@@ -770,6 +774,26 @@ class RelationalContexts:
         """Return product statistics bound to one scope."""
 
         return self._services_for(scope_id).statistics()
+
+    def source_lifecycle(self, scope_id: str, /) -> SourceLifecycleService:
+        """Return the Source evidence dependency graph bound to one scope."""
+
+        scope = validate_scope_id(scope_id)
+        services = self._services_for(scope)
+
+        def memory_service() -> MemoryService:
+            return services.memory(services.sources()[1])
+
+        return SourceLifecycleService(
+            SourceLifecycleBindings(
+                scope_id=scope,
+                graph=self._source_lifecycle_graph,
+                memory=memory_service,
+                memory_artifact_id=self._memory_artifact_id,
+                records=self.records,
+                write_lock=self._lifecycle_locks.setdefault(scope, asyncio.Lock()),
+            )
+        )
 
     def model_usage_reporter(
         self, scope_id: str, /

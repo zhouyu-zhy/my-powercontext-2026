@@ -54,6 +54,7 @@ from powercontext.builtin.persistence.supervision import database_utc_now
 from powercontext.builtin.persistence.tables import (
     ARTIFACT_HEADS_TABLE,
     ARTIFACTS_TABLE,
+    SOURCE_LIFECYCLE_NODES_TABLE,
     TOPIC_MEMORY_ACTIVE_CHUNKS_TABLE,
     TOPIC_MEMORY_ACTIVE_TOPICS_TABLE,
     TOPIC_MEMORY_RETRIEVAL_SHAPE_TABLE,
@@ -489,9 +490,13 @@ class TopicMemoryRepository:
         channels = await self.index.search(connection, scope_id, request)
         await self._check_retrieval_shape(connection)
         outcome = _fuse_topic_memory_rankings(query, channels, limit, mode=used_mode, admission=admission)
+        hits = outcome.hits
+        withdrawn = await self._withdrawn_artifact_ids(connection, scope_id)
+        if withdrawn:
+            hits = tuple(hit for hit in hits if hit.artifact_ref.artifact_id not in withdrawn)
         return TopicMemorySearchResult(
             mode=used_mode,
-            hits=outcome.hits,
+            hits=hits,
             admission=AdmissionCounts(
                 family=TopicMemory.family,
                 scope_id=scope_id,
@@ -500,6 +505,27 @@ class TopicMemoryRepository:
                 rejected=outcome.rejected,
             ),
         )
+
+    async def _withdrawn_artifact_ids(self, connection: AsyncConnection, scope_id: str, /) -> frozenset[str]:
+        """Report Topic Memory that a Source lifecycle graph bound and then stopped supporting.
+
+        A bound topic with no available binding leaves retrieval while its immutable Revision stays
+        exactly readable, so withdrawal never rewrites or hides the stored body.
+        """
+
+        table = SOURCE_LIFECYCLE_NODES_TABLE
+        rows = (
+            await connection.execute(
+                select(table.c.artifact_id, table.c.available).where(
+                    table.c.scope_id == scope_id,
+                    table.c.kind == "topic",
+                    table.c.artifact_id.is_not(None),
+                )
+            )
+        ).all()
+        bound = {str(row[0]) for row in rows}
+        supported = {str(row[0]) for row in rows if bool(row[1])}
+        return frozenset(bound - supported)
 
     async def _activate(
         self,

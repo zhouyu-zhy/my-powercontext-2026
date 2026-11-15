@@ -1180,6 +1180,41 @@ RECURRENCE_OBSERVATION_TABLE = Table(
 
 RECURRENCE_TABLES = (RECURRENCE_MATCH_TABLE, RECURRENCE_OBSERVATION_TABLE)
 
+SOURCE_LIFECYCLE_NODES_TABLE = Table(
+    "pc_source_lifecycle_nodes",
+    SHARED_METADATA,
+    Column("scope_id", identity_string(MAX_SCOPE_ID_LENGTH), primary_key=True),
+    Column("node_id", identity_string(MAX_ARTIFACT_ID_LENGTH), primary_key=True),
+    Column("kind", identity_string(MAX_ARTIFACT_FAMILY_LENGTH), nullable=False),
+    # One JSON payload per binding kind: SourceRef, MemoryCitation, or topic-memory ArtifactRef.
+    Column("reference", _entry_text_type(), nullable=False),
+    Column("parents", _entry_text_type(), nullable=False),
+    Column("policy", identity_string(8), nullable=False),
+    # The lifecycle revision a Source event must match, plus the last event applied to it.
+    Column("lifecycle_revision", Integer, nullable=False),
+    Column("event_sequence", BigInteger, nullable=False),
+    Column("event_digest", LargeBinary(32).with_variant(BINARY(32), "mysql"), nullable=False),
+    Column("available", Boolean, nullable=False),
+    # Denormalized so retrieval can gate Topic Memory without decoding JSON payloads.
+    Column("artifact_id", identity_string(MAX_ARTIFACT_ID_LENGTH), nullable=True),
+    ForeignKeyConstraint(("scope_id",), ("pc_scopes.scope_id",), ondelete="CASCADE"),
+    Index("ix_pc_source_lifecycle_nodes_topic", "scope_id", "kind", "artifact_id", "available"),
+    CheckConstraint(
+        "kind IN ('source', 'memory', 'topic')",
+        name="ck_pc_source_lifecycle_nodes_kind",
+    ),
+    CheckConstraint(
+        "policy IN ('all', 'any', 'none')",
+        name="ck_pc_source_lifecycle_nodes_policy",
+    ),
+    CheckConstraint(
+        "lifecycle_revision >= 0 AND event_sequence >= 0",
+        name="ck_pc_source_lifecycle_nodes_counters_nonnegative",
+    ),
+)
+
+SOURCE_LIFECYCLE_TABLES = (SOURCE_LIFECYCLE_NODES_TABLE,)
+
 BUILTIN_TABLES = (
     SCOPE_TABLES
     + SHARED_TABLES
@@ -1187,5 +1222,6 @@ BUILTIN_TABLES = (
     + MEMORY_TABLES
     + STATISTICS_TABLES
     + RECURRENCE_TABLES
+    + SOURCE_LIFECYCLE_TABLES
     + (ARTIFACT_TAGS_TABLE, DREAM_RUNS_TABLE, RECEIPT_MIGRATION_REVIEW_TABLE)
 )
