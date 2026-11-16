@@ -579,9 +579,6 @@ async def _locate(memory: Any, page: _Page) -> None:
     page.location = (document_id.strip(), number)
 
 
-_PARTITION: dict[tuple[str, int], dict[tuple[str, int], _Leaf]] = {}
-
-
 async def _corpus(memory: Any) -> dict[tuple[str, int], _Leaf]:
     """Every page the partition holds, keyed by the filing and the physical page it names.
 
@@ -599,10 +596,6 @@ async def _corpus(memory: Any) -> dict[tuple[str, int], _Leaf]:
     except Exception:  # noqa: BLE001 - a partition that cannot be read is judged on its probes alone
         return {}
     found = tuple(getattr(records, "entries", None) or ())
-    marker = (str(getattr(records, "memory_ref", None) or ""), len(found))
-    held = _PARTITION.get(marker)
-    if held is not None:
-        return held
     pages: dict[tuple[str, int], _Leaf] = {}
     for record in found:
         entry = getattr(record, "entry", None)
@@ -631,8 +624,6 @@ async def _corpus(memory: Any) -> dict[tuple[str, int], _Leaf]:
             amounts=_amount_density(text),
         )
         pages[leaf.location] = leaf
-    if pages:
-        _PARTITION[marker] = pages
     return pages
 
 
